@@ -8,25 +8,29 @@ def test_score_PAW():
     our_matrix = AlignmentMatrix.AlignmentMatrix("PAWHEA", "HEAGAWGHE")
     our_matrix.fill_matrix()
     our_matrix.calculate_score()
-    assert our_matrix.score == 0
+    assert our_matrix.score == 20
 
 def test_score_AA():
     our_matrix = AlignmentMatrix.AlignmentMatrix("AAAAA", "AA")
     our_matrix.fill_matrix()
     our_matrix.calculate_score()
-    assert our_matrix.score == 0
+    assert our_matrix.score == 4
 
-def test_calculate_seq0():
+def test_seq_PAW():
     our_matrix = AlignmentMatrix.AlignmentMatrix("PAWHEA", "HEAGAWGHE")
     our_matrix.fill_matrix()
     our_matrix.calculate_score()
-    assert our_matrix.score == 0
+    our_matrix.calculate_seq()
+    assert our_matrix.seq == ""
+    our_matrix.print_results()
 
-def test_calculate_seq1():
+def test_seq_AA():
     our_matrix = AlignmentMatrix.AlignmentMatrix("AAAAA", "AA")
     our_matrix.fill_matrix()
     our_matrix.calculate_score()
-    assert our_matrix.score == 0
+    our_matrix.calculate_seq()
+    assert our_matrix.seq == ""
+    our_matrix.print_results()
 
 def test_print_results():
     pass

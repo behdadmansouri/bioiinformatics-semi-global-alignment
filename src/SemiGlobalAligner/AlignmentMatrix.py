@@ -47,13 +47,12 @@ class AlignmentMatrix:
         self.first_string = first_string
         self.second_string = second_string
         self.matrix = [[0 for _ in range(len(first_string) + 1)] for _ in range(len(second_string) + 1)]
-        self.score = None
+        self.score = 0
+        self.score_loc = []
         self.seq = ""
         # example: seq = [('AAAAA', '---AA'), ('AAAAA', 'AA---'), ('AAAAA', '-AA--'), ('AAAAA', '--AA-')]
 
     def fill_matrix(self):
-        print()
-        print([line for line in self.matrix])
         for j in range(1, len(self.first_string) + 1):
             for i in range(1, len(self.second_string) + 1):
                 first_word = self.first_string[j - 1]
@@ -63,13 +62,38 @@ class AlignmentMatrix:
                      self.matrix[i - 1][j] - 9,
                      gamma]
                 self.matrix[i][j] = max(s)
-        for line in self.matrix:
-            print(line)
+        # for line in self.matrix:
+        #     print(line)
 
     def calculate_score(self):
-        self.score = 0
+        for i in range(1, len(self.second_string) + 1):
+            j = len(self.first_string)
+            if self.matrix[i][j] > self.score:
+                self.score = self.matrix[i][j]
+
+        for j in range(1, len(self.first_string) + 1):
+            i = len(self.second_string)
+            if self.matrix[i][j] > self.score:
+                self.score = self.matrix[i][j]
+
+        for i in range(1, len(self.second_string) + 1):
+            j = len(self.first_string)
+            if self.matrix[i][j] > self.score:
+                self.score = self.matrix[i][j]
+                self.score_loc = [(i, j)]
+            if self.matrix[i][j] == self.score:
+                self.score_loc.append((i, j))
+
+        for j in range(1, len(self.first_string) + 1):
+            i = len(self.second_string)
+            if self.matrix[i][j] > self.score:
+                self.score = self.matrix[i][j]
+                self.score_loc = [(i, j)]
+            if self.matrix[i][j] == self.score:
+                    self.score_loc.append((i, j))
 
     def calculate_seq(self):
+        print("\n", self.score_loc)
         self.seq = ""
 
     def print_results(self):
