@@ -47,9 +47,9 @@ class AlignmentMatrix:
         self.first_string = first_string
         self.second_string = second_string
         self.matrix = [[0 for _ in range(len(first_string) + 1)] for _ in range(len(second_string) + 1)]
-        self.score = 0
-        self.score_loc = set()
-        self.seq = ""
+        self.score = None
+        self.score_loc = None
+        self.seq = []
         # example: seq = [('AAAAA', '---AA'), ('AAAAA', 'AA---'), ('AAAAA', '-AA--'), ('AAAAA', '--AA-')]
 
     def fill_matrix(self):
@@ -84,7 +84,28 @@ class AlignmentMatrix:
 
     def calculate_seq(self):
         print("\n", self.score_loc)
+        for head in self.score_loc:
+            i = head[0]
+            j = head[1]
+            offset = len(self.first_string) - j
+            sequences = self.graph_tree(head)
+
+            for sequence in sequences:
+                self.seq.append(sequence + "_" * offset)
+
         self.seq = ""
+
+    def graph_tree(self, head):
+        branches = []
+        i = head[0]
+        j = head[1]
+        if j == 0:
+            offset = len(self.first_string) - i
+            return "_" * offset + self.matrix[i][j]
+        if i == 0:
+            return self.matrix[i][j]
+
+        return branches
 
     def print_results(self):
         print(self.score)
