@@ -43,39 +43,40 @@ class AlignmentMatrix:
               'P': -5, 'Q': -4, 'R': -4, 'S': -3, 'T': -3, 'V': -2, 'W': 0, 'Y': 10}
     }
 
-    def __init__(self, first_string, second_string):
-        self.first_string = first_string
-        self.second_string = second_string
-        self.matrix = [[0 for _ in range(len(first_string) + 1)] for _ in range(len(second_string) + 1)]
-        self.score = None
-        self.score_loc = None
+    def __init__(self, first_string_i_horizontal, second_string_j_vertical):
+        self.first_string_i_horizontal = first_string_i_horizontal
+        self.second_string_j_vertical = second_string_j_vertical
+        self.matrix = [[0 for _ in range(len(first_string_i_horizontal) + 1)]
+                       for _ in range(len(second_string_j_vertical) + 1)]
+        self.score = 0
+        self.score_loc = set()
         self.seq = []
         # example: seq = [('AAAAA', '---AA'), ('AAAAA', 'AA---'), ('AAAAA', '-AA--'), ('AAAAA', '--AA-')]
 
     def fill_matrix(self):
-        for j in range(1, len(self.first_string) + 1):
-            for i in range(1, len(self.second_string) + 1):
-                first_word = self.first_string[j - 1]
-                second_word = self.second_string[i - 1]
-                gamma = self.matrix[i-1][j-1] + self.PAM250[first_word][second_word]
+        for j in range(1, len(self.first_string_i_horizontal) + 1):
+            for i in range(1, len(self.second_string_j_vertical) + 1):
+                first_word = self.first_string_i_horizontal[j - 1]
+                second_word = self.second_string_j_vertical[i - 1]
+                gamma = self.matrix[i - 1][j - 1] + self.PAM250[first_word][second_word]
                 s = [self.matrix[i][j - 1] - 9,
                      self.matrix[i - 1][j] - 9,
                      gamma]
                 self.matrix[i][j] = max(s)
-        # for line in self.matrix:
-        #     print(line)
+        for line in self.matrix:
+            print(line)
 
     def calculate_score(self):
-        for i in range(1, len(self.second_string) + 1):
-            j = len(self.first_string)
+        for i in range(1, len(self.second_string_j_vertical) + 1):
+            j = len(self.first_string_i_horizontal)
             if self.matrix[i][j] == self.score:
                 self.score_loc.add((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
                 self.score_loc = {(i, j)}
 
-        for j in range(1, len(self.first_string) + 1):
-            i = len(self.second_string)
+        for j in range(1, len(self.first_string_i_horizontal) + 1):
+            i = len(self.second_string_j_vertical)
             if self.matrix[i][j] == self.score:
                 self.score_loc.add((i, j))
             if self.matrix[i][j] > self.score:
@@ -83,29 +84,75 @@ class AlignmentMatrix:
                 self.score_loc = {(i, j)}
 
     def calculate_seq(self):
-        print("\n", self.score_loc)
+        # self.matrix = list(zip(*self.matrix))
         for head in self.score_loc:
-            i = head[0]
-            j = head[1]
-            offset = len(self.first_string) - j
-            sequences = self.graph_tree(head)
+            A_first_i_horizontal = self.first_string_i_horizontal
+            B_second_j_vertical = self.second_string_j_vertical
+            traceback_A_first_i_horizontal = ""
+            traceback_B_second_j_vertical = ""
+            j, i = head
+            for final_vertical_offset in range(len(self.first_string_i_horizontal) - i):
+                traceback_A_first_i_horizontal, traceback_B_second_j_vertical, A_first_i_horizontal \
+                    = self.gap(A_first_i_horizontal, traceback_A_first_i_horizontal,
+                               traceback_B_second_j_vertical)
 
-            for sequence in sequences:
-                self.seq.append(sequence + "_" * offset)
+            for final_horizontal_offset in range(len(self.second_string_j_vertical) - j):
+                traceback_B_second_j_vertical, traceback_A_first_i_horizontal, B_second_j_vertical \
+                    = self.gap(B_second_j_vertical, traceback_B_second_j_vertical,
+                               traceback_A_first_i_horizontal)
 
-        self.seq = ""
+            while (i is not 0) and (j is not 0):
+                temp = self.matrix[j - 1][i - 1]
+                temp2 = self.matrix[j][i]
+                temp3 = self.PAM250[B_second_j_vertical[-1]] \
+                    [A_first_i_horizontal[-1]]
 
-    def graph_tree(self, head):
-        branches = []
-        i = head[0]
-        j = head[1]
-        if j == 0:
-            offset = len(self.first_string) - i
-            return "_" * offset + self.matrix[i][j]
-        if i == 0:
-            return self.matrix[i][j]
+                if self.matrix[j - 1][i - 1] == self.matrix[j][i] - \
+                        self.PAM250[B_second_j_vertical[-1]][A_first_i_horizontal[-1]]:
+                    A_first_i_horizontal, B_second_j_vertical, \
+                    traceback_A_first_i_horizontal, traceback_B_second_j_vertical = \
+                        self.fill(A_first_i_horizontal, B_second_j_vertical,
+                                  traceback_A_first_i_horizontal, traceback_B_second_j_vertical)
+                    j -= 1
+                    i -= 1
+                elif self.matrix[j - 1][i] == self.matrix[j - 1][i] - 9:
+                    traceback_A_first_i_horizontal, traceback_B_second_j_vertical, A_first_i_horizontal \
+                        = self.gap(A_first_i_horizontal, traceback_A_first_i_horizontal,
+                                   traceback_B_second_j_vertical)
+                    i -= 1
+                else:
+                    traceback_B_second_j_vertical, traceback_A_first_i_horizontal, B_second_j_vertical \
+                        = self.gap(B_second_j_vertical, traceback_B_second_j_vertical,
+                                   traceback_A_first_i_horizontal)
+                    j -= 1
 
-        return branches
+            for final_vertical_offset in range(i):
+                traceback_A_first_i_horizontal, traceback_B_second_j_vertical, A_first_i_horizontal \
+                    = self.gap(A_first_i_horizontal, traceback_A_first_i_horizontal,
+                               traceback_B_second_j_vertical)
+
+            for final_horizontal_offset in range(j):
+                traceback_B_second_j_vertical, traceback_A_first_i_horizontal, B_second_j_vertical \
+                    = self.gap(B_second_j_vertical, traceback_B_second_j_vertical,
+                               traceback_A_first_i_horizontal)
+
+            self.seq.append((traceback_A_first_i_horizontal[::-1], traceback_B_second_j_vertical[::-1]))
+
+    @staticmethod
+    def fill(reverse_A_first_i_horizontal, reverse_B_second_j_vertical, traceback_A_first_i_horizontal,
+             traceback_B_second_j_vertical):
+        traceback_B_second_j_vertical += reverse_B_second_j_vertical[-1]
+        traceback_A_first_i_horizontal += reverse_A_first_i_horizontal[-1]
+        reverse_B_second_j_vertical = reverse_B_second_j_vertical[:-1]
+        reverse_A_first_i_horizontal = reverse_A_first_i_horizontal[:-1]
+        return reverse_A_first_i_horizontal, reverse_B_second_j_vertical, traceback_A_first_i_horizontal, traceback_B_second_j_vertical
+
+    @staticmethod
+    def gap(reverse_no_gap, traceback_no_gap, traceback_gap_haver):
+        traceback_gap_haver += "-"
+        traceback_no_gap += reverse_no_gap[-1]
+        reverse_no_gap = reverse_no_gap[:-1]
+        return traceback_no_gap, traceback_gap_haver, reverse_no_gap
 
     def print_results(self):
         print(self.score)
