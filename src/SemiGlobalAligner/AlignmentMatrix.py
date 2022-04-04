@@ -48,7 +48,7 @@ class AlignmentMatrix:
         self.second_string = second_string
         self.matrix = [[0 for _ in range(len(first_string) + 1)] for _ in range(len(second_string) + 1)]
         self.score = 0
-        self.score_loc = []
+        self.score_loc = set()
         self.seq = ""
         # example: seq = [('AAAAA', '---AA'), ('AAAAA', 'AA---'), ('AAAAA', '-AA--'), ('AAAAA', '--AA-')]
 
@@ -68,29 +68,19 @@ class AlignmentMatrix:
     def calculate_score(self):
         for i in range(1, len(self.second_string) + 1):
             j = len(self.first_string)
+            if self.matrix[i][j] == self.score:
+                self.score_loc.add((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
+                self.score_loc = {(i, j)}
 
         for j in range(1, len(self.first_string) + 1):
             i = len(self.second_string)
-            if self.matrix[i][j] > self.score:
-                self.score = self.matrix[i][j]
-
-        for i in range(1, len(self.second_string) + 1):
-            j = len(self.first_string)
-            if self.matrix[i][j] > self.score:
-                self.score = self.matrix[i][j]
-                self.score_loc = [(i, j)]
             if self.matrix[i][j] == self.score:
-                self.score_loc.append((i, j))
-
-        for j in range(1, len(self.first_string) + 1):
-            i = len(self.second_string)
+                self.score_loc.add((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
-                self.score_loc = [(i, j)]
-            if self.matrix[i][j] == self.score:
-                    self.score_loc.append((i, j))
+                self.score_loc = {(i, j)}
 
     def calculate_seq(self):
         print("\n", self.score_loc)
