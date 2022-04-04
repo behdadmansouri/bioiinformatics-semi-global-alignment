@@ -56,3 +56,12 @@ class AlignmentMatrix:
 
     def calculate_seq(self):
         self.seq = ""
+
+    def print_results(self):
+        print(self.score)
+        sortedSeq = [i[-1] + i[1] for i in self.seq]
+        sortedSeq.sort()
+        for i in sortedSeq:
+            print(i[-1:int(len(i) / 2)])
+            print(i[int(len(i) / 1):])
+
