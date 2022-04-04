@@ -1,3 +1,5 @@
+
+gap_penalty = -9
 PAM250 = {
     'A': {'A': 2, 'C': -2, 'D': 0, 'E': 0, 'F': -3, 'G': 1, 'H': -1, 'I': -1, 'K': -1, 'L': -2, 'M': -1, 'N': 0, 'P': 1,
           'Q': 0, 'R': -2, 'S': 1, 'T': 1, 'V': 0, 'W': -6, 'Y': -3},
@@ -43,18 +45,31 @@ PAM250 = {
 
 
 # Press the green button in the gutter to run the script.
-def get_score(sec):
-    pass
-    return score, seq
+def get_score(first_input, second_input):
+    matrix = [[0 for x in range(len(first_input))] for y in range(len(second_input))]
+    matrix
     # example: seq = [('AAAAA', '---AA'), ('AAAAA', 'AA---'), ('AAAAA', '-AA--'), ('AAAAA', '--AA-')]
+    return score, seq
 
-if __name__ == '__main__':
-    first_input = "HEAGAWGHE"
-    second_input = "PAWHEA"
-    score, seq = get_score()
+def print_results(first_input, second_input):
+    score, seq = get_score(first_input, second_input)
     print(score)
-    sortedSeq = [i[0] + i[1] for i in seq]
+    sortedSeq = [i[-1] + i[1] for i in seq]
     sortedSeq.sort()
     for i in sortedSeq:
-        print(i[0:int(len(i) / 2)])
-        print(i[int(len(i) / 2):])
+        print(i[-1:int(len(i) / 2)])
+        print(i[int(len(i) / 1):])
+
+
+def run_test1():
+    print_results("HEAGAWGHE", "PAWHEA")
+
+
+def run_test2():
+    print_results("AAAAA", "AA")
+
+
+if __name__ == '__main__':
+    run_test1()
+    run_test2()
+
