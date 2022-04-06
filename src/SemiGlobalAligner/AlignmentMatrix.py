@@ -124,43 +124,34 @@ class AlignmentMatrix:
     def traverse_graph(self, head, trace_A, trace_B, A, B):
         j, i = head
 
-        # middle part
-        while i and j:
-            up_left = self.matrix[j - 1][i - 1]
-            this = self.matrix[j][i]
-            up_left_cost = self.PAM250[B[-1]][A[-1]]
-
-            if up_left == this - up_left_cost:
-                A, B, trace_A, trace_B = self.fill(A, B, trace_A, trace_B)
-                j -= 1
-                i -= 1
-            elif this == self.matrix[j - 1][i] - 9:
-                trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
-                j -= 1
-            else:
+        if i == 0 or j == 0:
+            # initial offsets
+            for _ in range(i):
                 trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-                i -= 1
+            for _ in range(j):
+                trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
 
-        # initial offsets
-        for _ in range(i):
-            trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-        for _ in range(j):
-            trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
+            self.seq.append((trace_A[::-1], trace_B[::-1]))
+            return
 
-        self.seq.append((trace_A[::-1], trace_B[::-1]))
-        # append the reverse sequences
-        # self.seq = sorted(self.seq, key=len, reverse=True)
-
+        this = self.matrix[j][i]
+        up_left = self.matrix[j - 1][i - 1]
+        up_left_cost = self.PAM250[B[-1]][A[-1]]
+        j_gap = self.matrix[j - 1][i]
+        i_gap = self.matrix[j][i-1]
+        if this == up_left + up_left_cost:
+            self.traverse_graph((j - 1, i - 1), trace_A + A[-1], trace_B + B[-1], A[:-1], B[:-1])
+        if this == j_gap - 9:
+            self.traverse_graph((j, i - 1), trace_A + "-", trace_B + B[-1], A[:-1], B)
+        if this == i_gap - 9:
+            self.traverse_graph((j - 1, i), trace_A + A[-1], trace_B + "-", A, B[:-1])
 
     @staticmethod
-    def fill(reverse_A_first_i_horizontal, reverse_B_second_j_vertical, traceback_A_first_i_horizontal,
-             traceback_B_second_j_vertical):
-        traceback_B_second_j_vertical += reverse_B_second_j_vertical[-1]
-        traceback_A_first_i_horizontal += reverse_A_first_i_horizontal[-1]
-        reverse_B_second_j_vertical = reverse_B_second_j_vertical[:-1]
-        reverse_A_first_i_horizontal = reverse_A_first_i_horizontal[:-1]
-        return reverse_A_first_i_horizontal, reverse_B_second_j_vertical, \
-               traceback_A_first_i_horizontal, traceback_B_second_j_vertical
+    def gap(loss_string, trace_loss, trace_hyphen):
+        trace_hyphen += "-"
+        trace_loss += loss_string[-1]
+        loss_string = loss_string[:-1]
+        return trace_loss, trace_hyphen, loss_string
 
     def make_graph(self, head):
         sequences = []
@@ -183,13 +174,6 @@ class AlignmentMatrix:
         if this == self.matrix[j][i - 1] - 9:
             self.traceback_matrix[j][i] += self.GAP_VERTICAL
             sequences.append(self.make_graph((j, i - 1)))
-
-    @staticmethod
-    def gap(reverse_no_gap, traceback_no_gap, traceback_gap_haver):
-        traceback_gap_haver += "-"
-        traceback_no_gap += reverse_no_gap[-1]
-        reverse_no_gap = reverse_no_gap[:-1]
-        return traceback_no_gap, traceback_gap_haver, reverse_no_gap
 
     def print_results(self):
         print(self.score)

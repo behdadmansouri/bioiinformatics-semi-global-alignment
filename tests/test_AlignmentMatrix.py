@@ -127,6 +127,7 @@ def test_seq_students_5():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
     assert our_matrix.score == 10
     assert our_matrix.seq == [('-----ACGTWWW', 'ACGTCCC-----')]
 
