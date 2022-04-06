@@ -109,20 +109,20 @@ class AlignmentMatrix:
     def calculate_seq(self):
         for head in self.score_loc:
             self.make_graph(head)
-            self.traverse_graph(head)
 
-    def traverse_graph(self, head):
-        A = self.A_vertical
-        B = self.B_horizontal
-        trace_A = ""
-        trace_B = ""
+            A, B = self.A_vertical, self.B_horizontal
+            j, i = head
+            trace_A, trace_B = "", ""
+
+            # final offsets
+            for _ in range(len(self.A_vertical) - i):
+                trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
+            for _ in range(len(self.B_horizontal) - j):
+                trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
+            self.traverse_graph(head, trace_A, trace_B, A, B)
+
+    def traverse_graph(self, head, trace_A, trace_B, A, B):
         j, i = head
-
-        # final offsets
-        for _ in range(len(self.A_vertical) - i):
-            trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-        for _ in range(len(self.B_horizontal) - j):
-            trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
 
         # middle part
         while i and j:
