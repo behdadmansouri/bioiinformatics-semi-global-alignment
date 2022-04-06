@@ -1,3 +1,6 @@
+from colorama import Fore
+
+
 class AlignmentMatrix:
     GAP_HORIZONTAL = 2
     GAP_VERTICAL = 4
@@ -79,9 +82,14 @@ class AlignmentMatrix:
     def print_matrix(self):
         print("\n\t\t", end="")
         print("\t".join(self.A_vertical))
-        for i in range(len(self.matrix)):
-            print((self.B_horizontal + " ")[i - 1], end="  ")
-            print(*self.matrix[i], sep="\t")
+        for j in range(len(self.matrix)):
+            print((self.B_horizontal + " ")[j - 1], end="  ")
+            for i in range(len(self.matrix[j])):
+                if self.traceback_matrix[j][i]:
+                    print(Fore.RED + str(self.matrix[j][i]) + Fore.WHITE, end="\t")
+                else:
+                    print(Fore.WHITE + str(self.matrix[j][i]), end="\t")
+            print("")
 
     def calculate_score(self):
         for i in range(1, len(self.B_horizontal) + 1):
