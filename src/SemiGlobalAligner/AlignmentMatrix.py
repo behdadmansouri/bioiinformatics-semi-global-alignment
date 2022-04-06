@@ -1,6 +1,3 @@
-from colorama import Fore
-
-
 class AlignmentMatrix:
     GAP_HORIZONTAL = 2
     GAP_VERTICAL = 4
@@ -80,6 +77,7 @@ class AlignmentMatrix:
             print(*self.traceback_matrix[i], sep="\t")
 
     def print_matrix(self):
+        from colorama import Fore
         print("\n\t\t", end="")
         print("\t".join(self.A_vertical))
         for j in range(len(self.matrix)):
@@ -109,51 +107,60 @@ class AlignmentMatrix:
                 self.score_loc = [(i, j)]
 
     def calculate_seq(self):
-
         for head in self.score_loc:
             self.make_graph(head)
+            self.traverse_graph(head)
 
-        # transpose the matrix
-        # self.matrix = list(zip(*self.matrix))
-        for head in self.score_loc:
-            A = self.A_vertical
-            B = self.B_horizontal
-            trace_A = ""
-            trace_B = ""
-            j, i = head
+    def traverse_graph(self, head):
+        A = self.A_vertical
+        B = self.B_horizontal
+        trace_A = ""
+        trace_B = ""
+        j, i = head
 
-            # final offsets
-            for _ in range(len(self.A_vertical) - i):
-                trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-            for _ in range(len(self.B_horizontal) - j):
+        # final offsets
+        for _ in range(len(self.A_vertical) - i):
+            trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
+        for _ in range(len(self.B_horizontal) - j):
+            trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
+
+        # middle part
+        while i and j:
+            up_left = self.matrix[j - 1][i - 1]
+            this = self.matrix[j][i]
+            up_left_cost = self.PAM250[B[-1]][A[-1]]
+
+            if up_left == this - up_left_cost:
+                A, B, trace_A, trace_B = self.fill(A, B, trace_A, trace_B)
+                j -= 1
+                i -= 1
+            elif this == self.matrix[j - 1][i] - 9:
                 trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
-
-            # middle part
-            while i and j:
-                up_left = self.matrix[j - 1][i - 1]
-                this = self.matrix[j][i]
-                up_left_cost = self.PAM250[B[-1]][A[-1]]
-
-                if up_left == this - up_left_cost:
-                    A, B, trace_A, trace_B = self.fill(A, B, trace_A, trace_B)
-                    j -= 1
-                    i -= 1
-                elif this == self.matrix[j - 1][i] - 9:
-                    trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
-                    j -= 1
-                else:
-                    trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-                    i -= 1
-
-            # initial offsets
-            for _ in range(i):
+                j -= 1
+            else:
                 trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-            for _ in range(j):
-                trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
+                i -= 1
 
-            self.seq.append((trace_A[::-1], trace_B[::-1]))
-            # append the reverse sequences
-            # self.seq = sorted(self.seq, key=len, reverse=True)
+        # initial offsets
+        for _ in range(i):
+            trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
+        for _ in range(j):
+            trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
+
+        self.seq.append((trace_A[::-1], trace_B[::-1]))
+        # append the reverse sequences
+        # self.seq = sorted(self.seq, key=len, reverse=True)
+
+
+    @staticmethod
+    def fill(reverse_A_first_i_horizontal, reverse_B_second_j_vertical, traceback_A_first_i_horizontal,
+             traceback_B_second_j_vertical):
+        traceback_B_second_j_vertical += reverse_B_second_j_vertical[-1]
+        traceback_A_first_i_horizontal += reverse_A_first_i_horizontal[-1]
+        reverse_B_second_j_vertical = reverse_B_second_j_vertical[:-1]
+        reverse_A_first_i_horizontal = reverse_A_first_i_horizontal[:-1]
+        return reverse_A_first_i_horizontal, reverse_B_second_j_vertical, \
+               traceback_A_first_i_horizontal, traceback_B_second_j_vertical
 
     def make_graph(self, head):
         sequences = []
@@ -178,16 +185,6 @@ class AlignmentMatrix:
             sequences.append(self.make_graph((j, i - 1)))
 
     @staticmethod
-    def fill(reverse_A_first_i_horizontal, reverse_B_second_j_vertical, traceback_A_first_i_horizontal,
-             traceback_B_second_j_vertical):
-        traceback_B_second_j_vertical += reverse_B_second_j_vertical[-1]
-        traceback_A_first_i_horizontal += reverse_A_first_i_horizontal[-1]
-        reverse_B_second_j_vertical = reverse_B_second_j_vertical[:-1]
-        reverse_A_first_i_horizontal = reverse_A_first_i_horizontal[:-1]
-        return reverse_A_first_i_horizontal, reverse_B_second_j_vertical, \
-               traceback_A_first_i_horizontal, traceback_B_second_j_vertical
-
-    @staticmethod
     def gap(reverse_no_gap, traceback_no_gap, traceback_gap_haver):
         traceback_gap_haver += "-"
         traceback_no_gap += reverse_no_gap[-1]
@@ -201,6 +198,8 @@ class AlignmentMatrix:
             print(i[1])
 
 
+# transpose the matrix
+# self.matrix = list(zip(*self.matrix))
 if __name__ == '__main__':
     x = input()
     y = input()
