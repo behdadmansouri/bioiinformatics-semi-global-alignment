@@ -10,6 +10,8 @@ def test_seq_PAW_reverse():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
+    our_matrix.print_traceback_matrix()
     assert our_matrix.score == 20
     assert our_matrix.seq == [('HEAGAWGHE-', '---PAW-HEA')]
 
@@ -19,6 +21,8 @@ def test_seq_PAW():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
+    our_matrix.print_traceback_matrix()
     assert our_matrix.score == 20
     assert our_matrix.seq == [('---PAW-HEA', 'HEAGAWGHE-')]
     # PAWHEA
@@ -46,6 +50,8 @@ def test_seq_AA():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
+    our_matrix.print_traceback_matrix()
     assert our_matrix.score == 4
     assert our_matrix.seq == [('AAAAA', '---AA'), ('AAAAA', '--AA-'), ('AAAAA', '-AA--'), ('AAAAA', 'AA---')]
     # AAAAA
@@ -70,6 +76,8 @@ def test_seq_students_1():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
+    our_matrix.print_traceback_matrix()
     assert our_matrix.score == 35
     assert our_matrix.seq == [('ACTATATTATATATA', 'ACTATA-TATATATA'), ('ACTATATTATATATA', 'ACTATAT-ATATATA')]
 
@@ -79,6 +87,8 @@ def test_seq_students_1_modified():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
+    our_matrix.print_traceback_matrix()
     assert our_matrix.score == 25
     assert our_matrix.seq == [('ACTTATATATA', 'AC-TATATATA'), ('ACTTATATATA', 'ACT-ATATATA')]
 
@@ -88,6 +98,8 @@ def test_seq_students_2():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
+    our_matrix.print_traceback_matrix()
     assert our_matrix.score == 97
     assert our_matrix.seq == [(' ACGTACGTACGTCCCCC---CCCC', ' ----ACTGACGTCCCCCWWWWCCC'),
                               (' ACGTACGTACGTCCCCC--C-CCC', ' ----ACTGACGTCCCCCWWWWCCC'),
@@ -109,6 +121,7 @@ def test_seq_students_4():
     our_matrix.calculate_score()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_matrix()
     assert our_matrix.score == 69
     assert our_matrix.seq == [('GTCCCCC---CCCC', 'GTCCCCCWWWWCCC'), ('GTCCCCC--C-CCC', 'GTCCCCCWWWWCCC'), (
         'GTCCCCC-C--CCC', 'GTCCCCCWWWWCCC'), ('GTCCCCCC---CCC', 'GTCCCCCWWWWCCC')]

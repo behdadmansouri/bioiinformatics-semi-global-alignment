@@ -7,6 +7,7 @@ using only the forward pass
 - pytests are written
 
 TODO
+- supports if a branch diverges, but not if two branches merge
 - customizable gap penalty
 - support for multi-path (missing in [here guy's](https://github.com/murk3000/Semi-Global-Allignment/blob/master/semi_glob_allign.py))
 - support for global and local alignment:
