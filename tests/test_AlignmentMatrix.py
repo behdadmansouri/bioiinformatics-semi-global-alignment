@@ -95,10 +95,10 @@ def test_seq_students_2():
     our_matrix.print_results()
     our_matrix.print_matrix()
     assert our_matrix.score == 97
-    assert our_matrix.seq == [(' ACGTACGTACGTCCCCC---CCCC', ' ----ACTGACGTCCCCCWWWWCCC'),
-                              (' ACGTACGTACGTCCCCC--C-CCC', ' ----ACTGACGTCCCCCWWWWCCC'),
-                              (' ACGTACGTACGTCCCCC-C--CCC', ' ----ACTGACGTCCCCCWWWWCCC'),
-                              (' ACGTACGTACGTCCCCCC---CCC', ' ----ACTGACGTCCCCCWWWWCCC')]
+    assert our_matrix.seq == [('ACGTACGTACGTCCCCC---CCCC', '----ACTGACGTCCCCCWWWWCCC'),
+                              ('ACGTACGTACGTCCCCC--C-CCC', '----ACTGACGTCCCCCWWWWCCC'),
+                              ('ACGTACGTACGTCCCCC-C--CCC', '----ACTGACGTCCCCCWWWWCCC'),
+                              ('ACGTACGTACGTCCCCCC---CCC', '----ACTGACGTCCCCCWWWWCCC')]
 
 def test_seq_students_3():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACTATATTATA", "ACTATATATA")

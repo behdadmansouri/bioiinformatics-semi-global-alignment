@@ -142,9 +142,9 @@ class AlignmentMatrix:
         if this == up_left + up_left_cost:
             self.traverse_graph((j - 1, i - 1), trace_A + A[-1], trace_B + B[-1], A[:-1], B[:-1])
         if this == j_gap - 9:
-            self.traverse_graph((j, i - 1), trace_A + "-", trace_B + B[-1], A[:-1], B)
+            self.traverse_graph((j - 1, i), trace_A + "-", trace_B + B[-1], A, B[:-1])
         if this == i_gap - 9:
-            self.traverse_graph((j - 1, i), trace_A + A[-1], trace_B + "-", A, B[:-1])
+            self.traverse_graph((j, i - 1), trace_A + A[-1], trace_B + "-", A[:-1], B)
 
     @staticmethod
     def gap(loss_string, trace_loss, trace_hyphen):
