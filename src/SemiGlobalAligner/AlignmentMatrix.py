@@ -43,17 +43,17 @@ class AlignmentMatrix:
               'P': -5, 'Q': -4, 'R': -4, 'S': -3, 'T': -3, 'V': -2, 'W': 0, 'Y': 10}
     }
 
-    def __init__(self, first_string, second_string):
+    def __init__(self, first_string, second_string, alignment):
         self.A = first_string
-
+        self.B = second_string
+        self.alignment = alignment
         self.traceback_matrix = [[False for _ in range(len(first_string) + 1)]
                                  for _ in range(len(second_string) + 1)]
-        self.B = second_string
         self.matrix = [[0 for _ in range(len(first_string) + 1)]
                        for _ in range(len(second_string) + 1)]
         # alignment score
         self.score = 0
-        self.head_locations = []
+        self.start = []
         self.sequences = []
 
     def fill_matrix_starting_gaps(self):
@@ -66,7 +66,8 @@ class AlignmentMatrix:
             self.matrix[i][j] = j * self.GAP_PENALTY
 
     def fill_matrix(self):
-
+        if self.alignment == "global":
+            self.fill_matrix_starting_gaps()
         for j in range(1, len(self.A) + 1):
             for i in range(1, len(self.B) + 1):
                 first_word = self.A[j - 1]
@@ -90,27 +91,40 @@ class AlignmentMatrix:
                     print(str(self.matrix[j][i]), end="\t")
             print("")
 
-    def calculate_score_find_heads(self):
+    def calculate_score_find_start_positions(self):
+        if self.alignment == "global":
+            self.start = [(len(self.B), len(self.A))]
+            return
+        if self.alignment == "local":
+            for i in range(1, len(self.B) + 1):
+                for j in range(1, len(self.A) + 1):
+                    if self.matrix[i][j] == self.score and (i, j) not in self.start:
+                        self.start.append((i, j))
+                    if self.matrix[i][j] > self.score:
+                        self.score = self.matrix[i][j]
+                        self.start = [(i, j)]
+            return
+
         for i in range(1, len(self.B) + 1):
             j = len(self.A)
-            if self.matrix[i][j] == self.score and (i, j) not in self.head_locations:
-                self.head_locations.append((i, j))
+            if self.matrix[i][j] == self.score and (i, j) not in self.start:
+                self.start.append((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
-                self.head_locations = [(i, j)]
+                self.start = [(i, j)]
 
         for j in reversed(range(1, len(self.A) + 1)):
             i = len(self.B)
-            if self.matrix[i][j] == self.score and (i, j) not in self.head_locations:
-                self.head_locations.append((i, j))
+            if self.matrix[i][j] == self.score and (i, j) not in self.start:
+                self.start.append((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
-                self.head_locations = [(i, j)]
+                self.start = [(i, j)]
 
     def calculate_seq(self):
-        for head in self.head_locations:
+        for start in self.start:
             A, B = self.A, self.B
-            j, i = head
+            j, i = start
             trace_A, trace_B = "", ""
 
             # final offsets
@@ -120,13 +134,13 @@ class AlignmentMatrix:
                 trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
 
             # run our recursive function
-            self.traverse_graph(head, trace_A, trace_B, A, B)
+            self.traceback(start, trace_A, trace_B, A, B)
 
-    def traverse_graph(self, head, trace_A, trace_B, A, B):
-        j, i = head
+    def traceback(self, start, trace_A, trace_B, A, B):
+        j, i = start
 
         # if the end is reached
-        if i == 0 or j == 0:
+        if i == 0 or j == 0 or (self.alignment == "local" and self.matrix[j][i] == 0):
             # initial offsets
             for _ in range(i):
                 trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
@@ -145,18 +159,18 @@ class AlignmentMatrix:
         # determine direction and run our recursive function
         if this == up_left + up_left_cost:
             self.traceback_matrix[j][i] = True
-            self.traverse_graph((j - 1, i - 1), trace_A + A[-1], trace_B + B[-1], A[:-1], B[:-1])
+            self.traceback((j - 1, i - 1), trace_A + A[-1], trace_B + B[-1], A[:-1], B[:-1])
         if this == j_gap + self.GAP_PENALTY:
             self.traceback_matrix[j][i] = True
-            self.traverse_graph((j - 1, i), trace_A + "-", trace_B + B[-1], A, B[:-1])
+            self.traceback((j - 1, i), trace_A + "-", trace_B + B[-1], A, B[:-1])
         if this == i_gap + self.GAP_PENALTY:
             self.traceback_matrix[j][i] = True
-            self.traverse_graph((j, i - 1), trace_A + A[-1], trace_B + "-", A[:-1], B)
+            self.traceback((j, i - 1), trace_A + A[-1], trace_B + "-", A[:-1], B)
 
-    @staticmethod
-    def gap(string_loss, trace_loss, trace_hyphen):
-        trace_hyphen += "-"
-        trace_loss += string_loss[-1]
+    def gap(self, string_loss, trace_loss, trace_hyphen):
+        if self.alignment != "local":
+            trace_hyphen += "-"
+            trace_loss += string_loss[-1]
         string_loss = string_loss[:-1]
         return trace_loss, trace_hyphen, string_loss
 
@@ -167,29 +181,17 @@ class AlignmentMatrix:
             print(i[1])
 
 
-def calculate_global_alignment(x, y):
-    our_matrix = AlignmentMatrix(x, y)
-    # needed for global alignment:
-    our_matrix.fill_matrix_starting_gaps()
+def calculate_alignment(x, y, alignment):
+    our_matrix = AlignmentMatrix(x, y, alignment)
     our_matrix.fill_matrix()
-    our_matrix.calculate_score_find_heads()
-    # needed for global alignment:
-    our_matrix.head_locations = [(len(our_matrix.B), len(our_matrix.A))]
-    our_matrix.calculate_seq()
-    our_matrix.print_results()
-    return our_matrix
-
-
-def calculate_semi_global_alignment(x, y):
-    our_matrix = AlignmentMatrix(x, y)
-    our_matrix.fill_matrix()
-    our_matrix.calculate_score_find_heads()
+    our_matrix.calculate_score_find_start_positions()
     our_matrix.calculate_seq()
     our_matrix.print_results()
     return our_matrix
 
 
 if __name__ == '__main__':
-    # matrix_for_printing = calculate_global_alignment(input(), input())
-    matrix_for_printing = calculate_semi_global_alignment(input(), input())
+    # matrix_for_printing = calculate_alignment(input(), input(), "global")
+    # matrix_for_printing = calculate_alignment(input(), input(), "local")
+    matrix_for_printing = calculate_alignment(input(), input(), "semi-global")
     # matrix_for_printing.print_colored_matrix()
