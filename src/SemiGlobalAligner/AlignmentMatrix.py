@@ -1,7 +1,4 @@
 class AlignmentMatrix:
-    GAP_HORIZONTAL = 2
-    GAP_VERTICAL = 4
-    MATCH = 1
     GAP_PENALTY = -9
     PAM250 = {
         'A': {'A': 2, 'C': -2, 'D': 0, 'E': 0, 'F': -3, 'G': 1, 'H': -1, 'I': -1, 'K': -1, 'L': -2, 'M': -1, 'N': 0,
@@ -47,148 +44,152 @@ class AlignmentMatrix:
     }
 
     def __init__(self, first_string, second_string):
-        self.A_vertical = first_string
+        self.A = first_string
 
-        self.traceback_matrix = [[0 for _ in range(len(first_string) + 1)]
+        self.traceback_matrix = [[False for _ in range(len(first_string) + 1)]
                                  for _ in range(len(second_string) + 1)]
-        self.B_horizontal = second_string
+        self.B = second_string
         self.matrix = [[0 for _ in range(len(first_string) + 1)]
                        for _ in range(len(second_string) + 1)]
+        # alignment score
         self.score = 0
-        self.score_loc = []
-        self.seq = []
+        self.head_locations = []
+        self.sequences = []
+
+    def fill_matrix_starting_gaps(self):
+        for i in range(0, len(self.B) + 1):
+            j = 0
+            self.matrix[i][j] = i * self.GAP_PENALTY
+
+        for j in range(0, len(self.A) + 1):
+            i = 0
+            self.matrix[i][j] = j * self.GAP_PENALTY
 
     def fill_matrix(self):
-        for j in range(1, len(self.A_vertical) + 1):
-            for i in range(1, len(self.B_horizontal) + 1):
-                first_word = self.A_vertical[j - 1]
-                second_word = self.B_horizontal[i - 1]
+
+        for j in range(1, len(self.A) + 1):
+            for i in range(1, len(self.B) + 1):
+                first_word = self.A[j - 1]
+                second_word = self.B[i - 1]
                 gamma = self.matrix[i - 1][j - 1] + self.PAM250[first_word][second_word]
-                s = [self.matrix[i][j - 1] - 9,
-                     self.matrix[i - 1][j] - 9,
+                s = [self.matrix[i][j - 1] + self.GAP_PENALTY,
+                     self.matrix[i - 1][j] + self.GAP_PENALTY,
                      gamma]
                 self.matrix[i][j] = max(s)
 
-    def print_traceback_matrix(self):
-        print("\n\t\t", end="")
-        print("\t".join(self.A_vertical))
-        for i in range(len(self.traceback_matrix)):
-            print((self.B_horizontal + " ")[i - 1], end="  ")
-            print(*self.traceback_matrix[i], sep="\t")
-
-    def print_matrix(self):
+    def print_colored_matrix(self):
         from colorama import Fore
         print("\n\t\t", end="")
-        print("\t".join(self.A_vertical))
+        print("\t".join(self.A))
         for j in range(len(self.matrix)):
-            print((self.B_horizontal + " ")[j - 1], end="  ")
+            print((self.B + " ")[j - 1], end="  ")
             for i in range(len(self.matrix[j])):
                 if self.traceback_matrix[j][i]:
                     print(Fore.RED + str(self.matrix[j][i]) + Fore.WHITE, end="\t")
                 else:
-                    print(Fore.WHITE + str(self.matrix[j][i]), end="\t")
+                    print(str(self.matrix[j][i]), end="\t")
             print("")
 
-    def calculate_score(self):
-        for i in range(1, len(self.B_horizontal) + 1):
-            j = len(self.A_vertical)
-            if self.matrix[i][j] == self.score and (i, j) not in self.score_loc:
-                self.score_loc.append((i, j))
+    def calculate_score_find_heads(self):
+        for i in range(1, len(self.B) + 1):
+            j = len(self.A)
+            if self.matrix[i][j] == self.score and (i, j) not in self.head_locations:
+                self.head_locations.append((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
-                self.score_loc = [(i, j)]
+                self.head_locations = [(i, j)]
 
-        for j in reversed(range(1, len(self.A_vertical) + 1)):
-            i = len(self.B_horizontal)
-            if self.matrix[i][j] == self.score and (i, j) not in self.score_loc:
-                self.score_loc.append((i, j))
+        for j in reversed(range(1, len(self.A) + 1)):
+            i = len(self.B)
+            if self.matrix[i][j] == self.score and (i, j) not in self.head_locations:
+                self.head_locations.append((i, j))
             if self.matrix[i][j] > self.score:
                 self.score = self.matrix[i][j]
-                self.score_loc = [(i, j)]
+                self.head_locations = [(i, j)]
 
     def calculate_seq(self):
-        for head in self.score_loc:
-            self.make_graph(head)
-
-            A, B = self.A_vertical, self.B_horizontal
+        for head in self.head_locations:
+            A, B = self.A, self.B
             j, i = head
             trace_A, trace_B = "", ""
 
             # final offsets
-            for _ in range(len(self.A_vertical) - i):
+            for _ in range(len(self.A) - i):
                 trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
-            for _ in range(len(self.B_horizontal) - j):
+            for _ in range(len(self.B) - j):
                 trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
+
+            # run our recursive function
             self.traverse_graph(head, trace_A, trace_B, A, B)
 
     def traverse_graph(self, head, trace_A, trace_B, A, B):
         j, i = head
 
+        # if the end is reached
         if i == 0 or j == 0:
             # initial offsets
             for _ in range(i):
                 trace_A, trace_B, A = self.gap(A, trace_A, trace_B)
             for _ in range(j):
                 trace_B, trace_A, B = self.gap(B, trace_B, trace_A)
-
-            self.seq.append((trace_A[::-1], trace_B[::-1]))
+            # invert the tracebacks and add them to self.seq
+            self.sequences.append((trace_A[::-1], trace_B[::-1]))
             return
 
         this = self.matrix[j][i]
         up_left = self.matrix[j - 1][i - 1]
         up_left_cost = self.PAM250[B[-1]][A[-1]]
         j_gap = self.matrix[j - 1][i]
-        i_gap = self.matrix[j][i-1]
+        i_gap = self.matrix[j][i - 1]
+
+        # determine direction and run our recursive function
         if this == up_left + up_left_cost:
+            self.traceback_matrix[j][i] = True
             self.traverse_graph((j - 1, i - 1), trace_A + A[-1], trace_B + B[-1], A[:-1], B[:-1])
-        if this == j_gap - 9:
+        if this == j_gap + self.GAP_PENALTY:
+            self.traceback_matrix[j][i] = True
             self.traverse_graph((j - 1, i), trace_A + "-", trace_B + B[-1], A, B[:-1])
-        if this == i_gap - 9:
+        if this == i_gap + self.GAP_PENALTY:
+            self.traceback_matrix[j][i] = True
             self.traverse_graph((j, i - 1), trace_A + A[-1], trace_B + "-", A[:-1], B)
 
     @staticmethod
-    def gap(loss_string, trace_loss, trace_hyphen):
+    def gap(string_loss, trace_loss, trace_hyphen):
         trace_hyphen += "-"
-        trace_loss += loss_string[-1]
-        loss_string = loss_string[:-1]
-        return trace_loss, trace_hyphen, loss_string
-
-    def make_graph(self, head):
-        sequences = []
-        j, i = head
-        if (i == 0) or (j == 0) or self.traceback_matrix[j][i]:
-            return
-
-        A, B = self.A_vertical, self.B_horizontal
-
-        up_left = self.matrix[j - 1][i - 1]
-        this = self.matrix[j][i]
-        up_left_cost = self.PAM250[B[j - 1]][A[i - 1]]
-
-        if up_left == this - up_left_cost:
-            self.traceback_matrix[j][i] += self.MATCH
-            sequences.append(self.make_graph((j - 1, i - 1)))
-        if this == self.matrix[j - 1][i] - 9:
-            self.traceback_matrix[j][i] += self.GAP_HORIZONTAL
-            sequences.append(self.make_graph((j - 1, i)))
-        if this == self.matrix[j][i - 1] - 9:
-            self.traceback_matrix[j][i] += self.GAP_VERTICAL
-            sequences.append(self.make_graph((j, i - 1)))
+        trace_loss += string_loss[-1]
+        string_loss = string_loss[:-1]
+        return trace_loss, trace_hyphen, string_loss
 
     def print_results(self):
         print(self.score)
-        for i in self.seq:
+        for i in self.sequences:
             print(i[0])
             print(i[1])
 
 
-# transpose the matrix
-# self.matrix = list(zip(*self.matrix))
-if __name__ == '__main__':
-    x = input()
-    y = input()
+def calculate_global_alignment(x, y):
     our_matrix = AlignmentMatrix(x, y)
+    # needed for global alignment:
+    our_matrix.fill_matrix_starting_gaps()
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
+    # needed for global alignment:
+    our_matrix.head_locations = [(len(our_matrix.B), len(our_matrix.A))]
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    return our_matrix
+
+
+def calculate_semi_global_alignment(x, y):
+    our_matrix = AlignmentMatrix(x, y)
+    our_matrix.fill_matrix()
+    our_matrix.calculate_score_find_heads()
+    our_matrix.calculate_seq()
+    our_matrix.print_results()
+    return our_matrix
+
+
+if __name__ == '__main__':
+    # matrix_for_printing = calculate_global_alignment(input(), input())
+    matrix_for_printing = calculate_semi_global_alignment(input(), input())
+    # matrix_for_printing.print_colored_matrix()

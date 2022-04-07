@@ -1,1 +1,2 @@
-setuptools~=60.2.0
+setuptools==62.0.0
+colorama

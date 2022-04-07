@@ -7,22 +7,22 @@ def test_pam_reference():
 def test_seq_PAW_reverse():
     our_matrix = AlignmentMatrix.AlignmentMatrix("HEAGAWGHE", "PAWHEA")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 20
-    assert our_matrix.seq == [('HEAGAWGHE-', '---PAW-HEA')]
+    assert our_matrix.sequences == [('HEAGAWGHE-', '---PAW-HEA')]
 
 def test_seq_PAW():
     our_matrix = AlignmentMatrix.AlignmentMatrix("PAWHEA", "HEAGAWGHE")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 20
-    assert our_matrix.seq == [('---PAW-HEA', 'HEAGAWGHE-')]
+    assert our_matrix.sequences == [('---PAW-HEA', 'HEAGAWGHE-')]
     # PAWHEA
     # HEAGAWGHE
     # [[ 0.  0.  0.  0.  0.  0.  0.]
@@ -45,12 +45,12 @@ def test_seq_PAW():
 def test_seq_AA():
     our_matrix = AlignmentMatrix.AlignmentMatrix("AAAAA", "AA")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 4
-    assert our_matrix.seq == [('AAAAA', '---AA'), ('AAAAA', '--AA-'), ('AAAAA', '-AA--'), ('AAAAA', 'AA---')]
+    assert our_matrix.sequences == [('AAAAA', '---AA'), ('AAAAA', '--AA-'), ('AAAAA', '-AA--'), ('AAAAA', 'AA---')]
     # AAAAA
     # AA
     # [[0. 0. 0. 0. 0. 0.]
@@ -70,82 +70,94 @@ def test_seq_AA():
 def test_seq_students_1():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACTATATTATATATA", "ACTATATATATATA")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 35
-    assert our_matrix.seq == [('ACTATATTATATATA', 'ACTATA-TATATATA'), ('ACTATATTATATATA', 'ACTATAT-ATATATA')]
+    assert our_matrix.sequences == [('ACTATATTATATATA', 'ACTATA-TATATATA'), ('ACTATATTATATATA', 'ACTATAT-ATATATA')]
 
 def test_seq_students_1_modified():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACTTATATATA", "ACTATATATA")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 25
-    assert our_matrix.seq == [('ACTTATATATA', 'AC-TATATATA'), ('ACTTATATATA', 'ACT-ATATATA')]
+    assert our_matrix.sequences == [('ACTTATATATA', 'AC-TATATATA'), ('ACTTATATATA', 'ACT-ATATATA')]
 
 def test_seq_students_2():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACGTACGTACGTCCCCCCCCC", "ACTGACGTCCCCCWWWWCCC")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 97
-    assert our_matrix.seq == [('ACGTACGTACGTCCCCC---CCCC', '----ACTGACGTCCCCCWWWWCCC'),
-                              ('ACGTACGTACGTCCCCC--C-CCC', '----ACTGACGTCCCCCWWWWCCC'),
-                              ('ACGTACGTACGTCCCCC-C--CCC', '----ACTGACGTCCCCCWWWWCCC'),
-                              ('ACGTACGTACGTCCCCCC---CCC', '----ACTGACGTCCCCCWWWWCCC')]
+    assert our_matrix.sequences == [('ACGTACGTACGTCCCCC---CCCC', '----ACTGACGTCCCCCWWWWCCC'),
+                                    ('ACGTACGTACGTCCCCC--C-CCC', '----ACTGACGTCCCCCWWWWCCC'),
+                                    ('ACGTACGTACGTCCCCC-C--CCC', '----ACTGACGTCCCCCWWWWCCC'),
+                                    ('ACGTACGTACGTCCCCCC---CCC', '----ACTGACGTCCCCCWWWWCCC')]
 
 def test_seq_students_3():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACTATATTATA", "ACTATATATA")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
     assert our_matrix.score == 30
-    assert our_matrix.seq == [('ACTATATTATA', 'ACTATATATA-')]
+    assert our_matrix.sequences == [('ACTATATTATA', 'ACTATATATA-')]
 
 def test_seq_students_4():
     our_matrix = AlignmentMatrix.AlignmentMatrix("GTCCCCCCCCC", "GTCCCCCWWWWCCC")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 69
-    assert our_matrix.seq == [('GTCCCCC---CCCC', 'GTCCCCCWWWWCCC'), ('GTCCCCC--C-CCC', 'GTCCCCCWWWWCCC'), (
+    assert our_matrix.sequences == [('GTCCCCC---CCCC', 'GTCCCCCWWWWCCC'), ('GTCCCCC--C-CCC', 'GTCCCCCWWWWCCC'), (
         'GTCCCCC-C--CCC', 'GTCCCCCWWWWCCC'), ('GTCCCCCC---CCC', 'GTCCCCCWWWWCCC')]
 
 
 def test_seq_students_5():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACGTWWW", "ACGTCCC")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
-    our_matrix.print_matrix()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 10
-    assert our_matrix.seq == [('-----ACGTWWW', 'ACGTCCC-----')]
+    assert our_matrix.sequences == [('-----ACGTWWW', 'ACGTCCC-----')]
 
 
 def test_seq_students_6():
     our_matrix = AlignmentMatrix.AlignmentMatrix("ACGTGGG", "ACGTCCC")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 13
-    assert our_matrix.seq == [('ACGTGGG', 'ACGTCCC')]
+    assert our_matrix.sequences == [('ACGTGGG', 'ACGTCCC')]
 
 def test_seq_students_7():
     our_matrix = AlignmentMatrix.AlignmentMatrix("WWWTGCA", "CCTGCA")
     our_matrix.fill_matrix()
-    our_matrix.calculate_score()
+    our_matrix.calculate_score_find_heads()
     our_matrix.calculate_seq()
     our_matrix.print_results()
+    our_matrix.print_colored_matrix()
     assert our_matrix.score == 10
-    assert our_matrix.seq == [('WWWTGCA----', '-----CCTGCA'), ('WWWTGCA---', '----CCTGCA')]
+    assert our_matrix.sequences == [('WWWTGCA----', '-----CCTGCA'), ('WWWTGCA---', '----CCTGCA')]
+
+def test_seq_student_8():
+    our_matrix = AlignmentMatrix.AlignmentMatrix("CACGGTCCGAA", "AACTTCGAA")
+    our_matrix.fill_matrix()
+    our_matrix.calculate_score_find_heads()
+    our_matrix.calculate_seq()
+    our_matrix.print_results()
+    our_matrix.print_colored_matrix()
+    # assert our_matrix.score == 10
+    # assert our_matrix.sequences == [('WWWTGCA----', '-----CCTGCA'), ('WWWTGCA---', '----CCTGCA')]
