@@ -42,3 +42,7 @@ Get colored output
 
 Change gap penalty
 > It's a static parameter in the `AlignmentMatrix` class
+
+
+## Todo
+- remove the need for the `colorama` library

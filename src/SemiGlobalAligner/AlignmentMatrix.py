@@ -44,6 +44,12 @@ class AlignmentMatrix:
     }
 
     def __init__(self, first_string, second_string, alignment):
+        """
+        initializes the matrix.
+        :param first_string: The first string to be aligned
+        :param second_string: The second string to be aligned
+        :param alignment: The alignment type. "local", "global" or "semi-global"
+        """
         self.A = first_string
         self.B = second_string
         self.alignment = alignment
@@ -56,18 +62,19 @@ class AlignmentMatrix:
         self.start = []
         self.sequences = []
 
-    def fill_matrix_starting_gaps(self):
-        for i in range(0, len(self.B) + 1):
-            j = 0
-            self.matrix[i][j] = i * self.GAP_PENALTY
-
-        for j in range(0, len(self.A) + 1):
-            i = 0
-            self.matrix[i][j] = j * self.GAP_PENALTY
-
     def fill_matrix(self):
+        """
+        classic feedforward. Find the maximum of a left gap, an up gap, and the match from up-left. Put it in the matrix
+        If the alignment is global, fill the first row with gaps instead of zeros
+        """
         if self.alignment == "global":
-            self.fill_matrix_starting_gaps()
+            for i in range(0, len(self.B) + 1):
+                j = 0
+                self.matrix[i][j] = i * self.GAP_PENALTY
+
+            for j in range(0, len(self.A) + 1):
+                i = 0
+                self.matrix[i][j] = j * self.GAP_PENALTY
         for j in range(1, len(self.A) + 1):
             for i in range(1, len(self.B) + 1):
                 first_word = self.A[j - 1]
@@ -79,6 +86,10 @@ class AlignmentMatrix:
                 self.matrix[i][j] = max(s)
 
     def print_colored_matrix(self):
+        """
+        Prints the matrix with given strings on the top and the left
+        Also the colorama library is imported here, so we'd color the matrix items which are in the traceback
+        """
         from colorama import Fore
         print("\n\t\t", end="")
         print("\t".join(self.A))
@@ -92,6 +103,11 @@ class AlignmentMatrix:
             print("")
 
     def calculate_score_find_start_positions(self):
+        """
+        global only finds scores (head is always the last matrix entry)
+        local and semi-global not only calculate scores, but they also finds various heads.
+        :return: nothing. Just breaks out if local or global scores are found
+        """
         if self.alignment == "global":
             self.start = [(len(self.B), len(self.A))]
             return
@@ -122,6 +138,9 @@ class AlignmentMatrix:
                 self.start = [(i, j)]
 
     def calculate_seq(self):
+        """
+        We have a filled matrix, and we're going to trace back two (or more) tuples of strings to find alignments.
+        """
         for start in self.start:
             A, B = self.A, self.B
             j, i = start
@@ -137,6 +156,15 @@ class AlignmentMatrix:
             self.traceback(start, trace_A, trace_B, A, B)
 
     def traceback(self, start, trace_A, trace_B, A, B):
+        """
+
+        :param start: the current matrix item that we're finding our way back from
+        :param trace_A: the traced first string, so far
+        :param trace_B: the traced second string, so far
+        :param A: the remainder of the first string
+        :param B: the remainder of the second string
+        :return: nothing. Just breaks out if we reach an end point
+        """
         j, i = start
 
         # if the end is reached
@@ -168,6 +196,14 @@ class AlignmentMatrix:
             self.traceback((j, i - 1), trace_A + A[-1], trace_B + "-", A[:-1], B)
 
     def gap(self, string_loss, trace_loss, trace_hyphen):
+        """
+        calculates a gap
+        the only thing making this function a method is checking the matrix alignment
+        :param string_loss: the initial string that will have a letter dropped (for the gap)
+        :param trace_loss: the traceback string that will have a letter dropped (for the gap)
+        :param trace_hyphen: the traceback string that will be getting a hyphen (for the gap)
+        :return: the state. Every parameter will be returned.
+        """
         if self.alignment != "local":
             trace_hyphen += "-"
             trace_loss += string_loss[-1]
@@ -175,6 +211,9 @@ class AlignmentMatrix:
         return trace_loss, trace_hyphen, string_loss
 
     def print_results(self):
+        """
+        prints the score and the alignment tuples
+        """
         print(self.score)
         for i in self.sequences:
             print(i[0])
@@ -182,10 +221,18 @@ class AlignmentMatrix:
 
 
 def calculate_alignment(x, y, alignment):
+    """
+    does everything, except printing the matrix. it only prints the score and the final alignments
+    :param x: first input string
+    :param y: second input string
+    :param alignment: "global", "local" or "semi-global
+    :return: our matrix object, meant to be examined / used for printing the colored matrix
+    """
     our_matrix = AlignmentMatrix(x, y, alignment)
     our_matrix.fill_matrix()
     our_matrix.calculate_score_find_start_positions()
     our_matrix.calculate_seq()
+    # the only printing this function does
     our_matrix.print_results()
     return our_matrix
 
